@@ -1,0 +1,37 @@
+{% extends 'votingApp/base.html' %}
+{% block title %}Results - e-Sanchay{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Election Results</h1>
+    
+    {% for election in elections_with_results %}
+        <div class="result-card">
+            <h3>{{ election.name }}</h3>
+            
+            {% if election.is_active %}
+                <p><strong>Status:</strong> This election is still active. Results will be shown after it ends.</p>
+            {% else %}
+                <p><strong>Status:</strong> This election has concluded.</p>
+                <h4 style="margin-top: 20px;">Final Tally:</h4>
+                <ul style="list-style: none; padding-left: 0;">
+                    {% for candidate, vote_count in election.results.items %}
+                        <li style="font-size: 1.1em; margin-bottom: 10px;">
+                            <strong>{{ candidate.name }} ({{ candidate.party.name }})</strong>:
+                            <span style="color: var(--primary-color); font-weight: bold;">
+                                {{ vote_count }} votes
+                            </span>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <h3 style="margin-top: 20px; color: var(--success-color);">
+                    Winner: {{ election.winner.name }}
+                </h3>
+            {% endif %}
+        </div>
+    {% empty %}
+        <p>There are no election results to display at this time.</p>
+    {% endfor %}
+    
+</div>
+{% endblock %}

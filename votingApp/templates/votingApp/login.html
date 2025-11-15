@@ -1,0 +1,29 @@
+{% extends 'votingApp/base.html' %}
+{% block title %}Login - e-Chayan{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <h1>Voter Login</h1>
+
+    {% if error %}
+        <div class="alert-message alert-error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="{% url 'login' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit" class="btn">Login</button>
+    </form>
+    
+    <div class="auth-link">
+        <p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
+    </div>
+</div>
+{% endblock %}

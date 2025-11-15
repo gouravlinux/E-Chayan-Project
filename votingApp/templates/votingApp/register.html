@@ -1,0 +1,53 @@
+{% extends 'votingApp/base.html' %}
+{% block title %}Register - e-Chayan{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <h1>Create Your Voter Account</h1>
+    
+    {% if error %}
+        <div class="alert-message alert-error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="{% url 'register' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="first_name">First Name</label>
+            <input type="text" id="first_name" name="first_name" required>
+        </div>
+        <div class="form-group">
+            <label for="last_name">Last Name</label>
+            <input type="text" id="last_name" name="last_name" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <div class="form-group">
+            <label for="age">Age</label>
+            <input type="number" id="age" name="age" min="18" required>
+        </div>
+        <div class="form-group">
+            <label for="state">State</label>
+            <select id="state" name="state">
+                {% for value, label in states %}
+                    <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn">Register</button>
+    </form>
+    
+    <div class="auth-link">
+        <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+    </div>
+</div>
+{% endblock %}

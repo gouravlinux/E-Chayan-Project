@@ -2,12 +2,13 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 from django.core.validators import MinValueValidator, MaxValueValidator 
+from django.core.exceptions import ValidationError
 
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     age = models.IntegerField(
-        default=1, validators=[MinValueValidator(18), MaxValueValidator(100)]
+        default=18, validators=[MinValueValidator(18), MaxValueValidator(100)]
     )
 
     class StateChoices(models.TextChoices):
@@ -53,10 +54,22 @@ class Election(models.Model):
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
 
+    def clean(self):
+        # Automatically clear the state field if the election is National
+        if self.election_type == self.Electiontype.NATIONAL:
+            self.state = None
+        
+        # Raise an error if the type is State but no state is selected
+        if self.election_type == self.Electiontype.STATE and not self.state:
+            raise ValidationError("A State election must have a state selected.")
+
     def save(self, *args, **kwargs):
+        self.clean()
         if not self.slug:
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
+    
+    
 
     def __str__(self):
         return self.name
@@ -80,7 +93,10 @@ class Candidate(models.Model):
     party = models.ForeignKey(Party, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
-        return self.name
+        if (self.party):
+            return f"{self.name} ({self.party.name})"
+        else:
+            return f"{self.name} (Independent)"
 
 
 class Vote(models.Model):

@@ -1,0 +1,37 @@
+{% extends 'votingApp/base.html' %}
+{% block title %}Cast Your Vote - e-Chayan{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <h1>{{ election.name }}</h1>
+    <p>{{ election.description }}</p>
+    <p>Please select one candidate and click "Cast Vote".</p>
+    <p style="color: var(--error-color);"><strong>You can only vote once. This action is final.</strong></p>
+    
+    {% if error %}
+        <div class="alert-message alert-error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group" style="margin-top: 30px;">
+            
+            {% for candidate in election.candidates.all %}
+            <div style="margin-bottom: 15px; border: 1px solid var(--border-color); padding: 10px; border-radius: 5px;">
+                <input type="radio" id="candidate-{{ candidate.id }}" name="candidate" value="{{ candidate.id }}" required>
+                <label for="candidate-{{ candidate.id }}" style="font-size: 1.2em; font-weight: bold;">
+                    {{ candidate.name }}
+                </label>
+                <p style="margin: 5px 0 0 25px;">Party: {{ candidate.party.name }}</p>
+            </div>
+            {% endfor %}
+            
+        </div>
+        <button type="submit" class="btn" style="background-color: var(--success-color);">Confirm and Cast My Vote</button>
+    </form>
+    
+    <div class="auth-link">
+        <a href="{% url 'dashboard' %}">Cancel and go back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'votingApp/base.html' %}
+{% block title %}Home - e-Chayan{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="text-align: center; padding: 60px 20px; background-color: var(--card-color); border-radius: 8px;">
+        <h1>Welcome to e-Chayan</h1>
+        <p style="font-size: 1.2em;">The future of secure and convenient digital voting.</p>
+        <br>
+        
+        <h2>Live Voter Turnout</h2>
+        <h3 style="font-size: 3em; color: var(--primary-color); margin: 10px 0;">{{ turnout_percentage | default:"34.5" }}%</h3>
+        
+        <br>
+        {% if not user.is_authenticated %}
+            <a href="{% url 'register' %}" class="btn" style="max-width: 200px; margin: 10px;">Register to Vote</a>
+            <a href="{% url 'login' %}" class="btn" style="max-width: 200px; background-color: #fff; color: #000;">Login</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
