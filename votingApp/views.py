@@ -6,6 +6,10 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone  # Import this to check dates
 from django.db.models import Q, Count # Import for complex queries and counting
 from django.contrib import messages # To show success/error messages
+import random
+from django.core.mail import send_mail
+from django.conf import settings
+import time
 
 # --- 1. Home Page ---
 # (Added logic for live turnout)
@@ -27,67 +31,145 @@ def home_page(request):
     context = {'turnout_percentage': turnout_percentage}
     return render(request, "votingApp/home.html", context)
 
-
-# --- 2. Registration Page ---
-# (Added error handling and fixed a typo)
+# REPALCE your register_page with this
 def register_page(request):
     if request.method == "POST":
         username = request.POST.get("username")
         email = request.POST.get("email")
-        password = request.POST.get("password")
-        fname = request.POST.get("first_name")
-        lname = request.POST.get("last_name")
-        age = request.POST.get("age")
-        state = request.POST.get("state")
+        # ... (get all other fields: fname, lname, age, state) ...
         
         context = {'states': UserProfile.StateChoices.choices}
 
-        # --- ADDED Error Handling ---
         if User.objects.filter(username=username).exists():
             context['error'] = "Username is already taken."
             return render(request, 'votingApp/register.html', context)
         if User.objects.filter(email=email).exists():
             context['error'] = "Email is already registered."
             return render(request, 'votingApp/register.html', context)
-        # --- End Error Handling ---
 
-        # Create the User
+        # --- MODIFIED: Create user but set as INACTIVE ---
         new_user = User.objects.create_user(
-            username=username, password=password, email=email
+            username=username, 
+            password=request.POST.get("password"), 
+            email=email,
+            is_active=False  # <-- User can't log in yet
         )
-        new_user.first_name = fname
-        new_user.last_name = lname # <-- FIXED TYPO (was .last)
+        new_user.first_name = request.POST.get("first_name")
+        new_user.last_name = request.POST.get("last_name")
         new_user.save()
 
-        # Create the UserProfile
-        UserProfile.objects.create(user=new_user, age=age, state=state)
+        UserProfile.objects.create(
+            user=new_user, 
+            age=request.POST.get("age"), 
+            state=request.POST.get("state")
+        )
         
-        messages.success(request, "Registration successful! Please login.")
-        return redirect('login')
+        # --- NEW: Send OTP ---
+        otp = random.randint(100000, 999999)
+        
+        # Save OTP in session
+        request.session['verification_otp'] = otp
+        request.session['verification_user_id'] = new_user.id
+        request.session['otp_creation_time'] = time.time()
+        
+        # Send email
+        subject = 'Your e-Chayan Account Verification'
+        message = f'Your One-Time Password (OTP) for e-Chayan is: {otp}'
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
+        
+        messages.success(request, "Registration successful! Please check your email for an OTP to activate your account.")
+        return redirect('verify_otp')
 
-    # if GET request, just show the page
-    # pass the state choices from your model to the template
     context = {'states': UserProfile.StateChoices.choices}
     return render(request, 'votingApp/register.html', context)
 
 
-# --- 3. Login Page ---
-# (Added support for messages)
+# --- ADD THIS NEW VIEW ---
+# In votingApp/views.py
+
+def verify_otp_page(request):
+    try:
+        # Get all session data
+        stored_otp = request.session.get('verification_otp')
+        user_id = request.session.get('verification_user_id')
+        otp_creation_time = request.session.get('otp_creation_time')
+
+        # Check if session is missing
+        if not stored_otp or not user_id or not otp_creation_time:
+            messages.error(request, "Your verification session has expired. Please register again.")
+            return redirect('register')
+
+        # --- 10-MINUTE TIMEOUT LOGIC ---
+        current_time = time.time()
+        if (current_time - otp_creation_time) > 600:  # 600 seconds = 10 minutes
+            
+            # Delete the unverified user
+            try:
+                user_to_delete = User.objects.get(id=user_id, is_active=False)
+                user_to_delete.delete() # This will also delete the associated UserProfile
+            except User.DoesNotExist:
+                pass # User already deleted or activated, which is fine
+            
+            # Clear the expired session
+            request.session.flush()
+            
+            messages.error(request, "OTP expired (10 minute limit). Your registration data has been deleted. Please register again.")
+            return redirect('register')
+        # --- END OF TIMEOUT LOGIC ---
+
+    except KeyError:
+        messages.error(request, "Invalid session. Please register again.")
+        return redirect('register')
+
+    # Handle the form submission
+    if request.method == 'POST':
+        submitted_otp = request.POST.get('otp')
+        
+        if int(submitted_otp) == stored_otp:
+            # --- SUCCESS ---
+            user = User.objects.get(id=user_id)
+            user.is_active = True
+            user.save()
+            
+            user.userprofile.is_email_verified = True
+            user.userprofile.save()
+            
+            # Clear the session
+            request.session.flush()
+            
+            messages.success(request, "Email verified! You can now log in.")
+            return redirect('login')
+        else:
+            return render(request, 'votingApp/verify_otp.html', {"error": "Invalid OTP. Please try again."})
+    
+    # If GET request, just show the page (it passed the time check)
+    return render(request, 'votingApp/verify_otp.html')
+
+# REPLACE your login_page with this
 def login_page(request):
     if request.method == "POST":
         username = request.POST.get('username')
         password = request.POST.get('password')
 
+        # --- MODIFIED: Check if user exists and is inactive ---
+        try:
+            user_exists = User.objects.get(username=username)
+            if not user_exists.is_active:
+                messages.error(request, "This account is not active. Please check your email to verify with OTP.")
+                return render(request, 'votingApp/login.html')
+        except User.DoesNotExist:
+            pass # Let authenticate() handle the "does not exist" error
+        # --- End of check ---
+
         user = authenticate(request, username=username, password=password)
+        
         if user is not None:
             login(request, user)
             return redirect('dashboard')
         else:
-            # Using context error for your template's design
-            return render(request, 'votingApp/login.html', {"error": "Invalid credentials"})
+            return render(request, 'votingApp/login.html', {"error": "Invalid credentials. Please try again."})
     
     return render(request, 'votingApp/login.html')
-
 
 # --- 4. Logout Page ---
 def logout_page(request):
@@ -136,6 +218,63 @@ def dashboard_page(request):
     # --- FIXED Template Path ---
     return render(request, 'votingApp/voting_dashboard.html', context)
 
+# At the bottom of votingApp/views.py
+
+# from django.contrib import messages
+
+@login_required
+def profile_page(request):
+    # Get the user and their profile
+    user = request.user
+    profile = user.userprofile
+    
+    # Get the state choices to pass to the template
+    states = UserProfile.StateChoices.choices
+    
+    # This handles the form submission
+    if request.method == 'POST':
+        # Get data from the form
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        age_str = request.POST.get('age')
+        state = request.POST.get('state')
+
+        # --- Validation ---
+        try:
+            age = int(age_str)
+            if age < 18:
+                messages.error(request, "Age must be 18 or older.")
+                return redirect('profile') # Stop and reload the page
+        except ValueError:
+            messages.error(request, "Invalid age format.")
+            return redirect('profile')
+
+        # --- Save Changes ---
+        # Update User model
+        user.first_name = first_name
+        user.last_name = last_name
+        user.email = email
+        user.save()
+        
+        # Update UserProfile model
+        profile.age = age
+        profile.state = state
+        profile.save()
+
+        # --- Show Confirmation ---
+        messages.success(request, "Your profile has been updated successfully!")
+        
+        # Redirect back to the profile page
+        return redirect('profile')
+
+    # This handles the initial page load
+    context = {
+        'user': user,
+        'profile': profile,
+        'states': states
+    }
+    return render(request, 'votingApp/profile.html', context)
 
 # --- 6. Results Page ---
 # (HEAVILY UPGRADED to calculate and show results)
@@ -186,6 +325,10 @@ def vote_page(request, election_slug):
     now = timezone.now()
 
     # --- Security & Logic Checks ---
+    # is user's email verified?
+    if not profile.is_email_verified:
+        messages.error(request, "You must verify your email before you can vote.")
+        return redirect('dashboard')
     # 1. Is user verified?
     if not profile.is_verified:
         messages.error(request, "You are not verified to vote.")

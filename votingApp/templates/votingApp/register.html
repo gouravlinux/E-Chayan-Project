@@ -9,6 +9,18 @@
         <div class="alert-message alert-error">{{ error }}</div>
     {% endif %}
 
+    <div class="guidelines-box">
+        <h4>Registration Guidelines</h4>
+        <ul>
+            <li>You must be a <strong>citizen of India</strong> to register.</li>
+            <li>You must be <strong>18 years of age or older</strong>.</li>
+            <li>Register with your full legal name and a valid email address.</li>
+            <li>You may only register for <strong>one account</strong>. Duplicate accounts will be deleted.</li>
+            <li>Your profile will be reviewed by an administrator before you are eligible to vote.</li>
+            <li>By registering, you confirm that all information provided is true. <strong>Providing false information is a punishable offense, and legal action may be taken.</strong></li>
+        </ul>
+    </div>
+    
     <form method="POST" action="{% url 'register' %}">
         {% csrf_token %}
         <div class="form-group">
@@ -28,8 +40,11 @@
             <input type="text" id="username" name="username" required>
         </div>
         <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" required>
+           <label for="reg-password">Password</label>
+            <div class="password-wrapper">
+                <input type="password" id="reg-password" name="password" class="form-control" required>
+                <i class="bi bi-eye-slash toggle-password-icon"></i>
+            </div> 
         </div>
         <div class="form-group">
             <label for="age">Age</label>

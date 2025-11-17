@@ -2,20 +2,25 @@
 {% block title %}Home - e-Chayan{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div style="text-align: center; padding: 60px 20px; background-color: var(--card-color); border-radius: 8px;">
-        <h1>Welcome to e-Chayan</h1>
-        <p style="font-size: 1.2em;">The future of secure and convenient digital voting.</p>
-        <br>
-        
-        <h2>Live Voter Turnout</h2>
-        <h3 style="font-size: 3em; color: var(--primary-color); margin: 10px 0;">{{ turnout_percentage | default:"34.5" }}%</h3>
-        
-        <br>
-        {% if not user.is_authenticated %}
-            <a href="{% url 'register' %}" class="btn" style="max-width: 200px; margin: 10px;">Register to Vote</a>
-            <a href="{% url 'login' %}" class="btn" style="max-width: 200px; background-color: #fff; color: #000;">Login</a>
-        {% endif %}
+<div class="result-card" style="text-align: center; padding: 40px 20px;">
+    
+    <h1 style="font-weight: 600; margin-bottom: 10px;">Welcome to e-Chayan</h1>
+    <p style="font-size: 1.2em; color: #555;">The future of secure and convenient digital voting.</p>
+    
+    <br>
+    
+    <h2 style="font-weight: 600;">Live Voter Turnout</h2>
+    
+    <h3 style="font-size: 3.5em; color: var(--primary-color); font-weight: 700; margin: 10px 0;">
+        {{ turnout_percentage | default:"25.0" }}%
+    </h3>
+    
+    <br>
+    
+    <div style="max-width: 400px; margin: 20px auto; display: flex; gap: 15px;">
+        <a href="{% url 'register' %}" class="btn btn-primary" style="width: 50%;">Register to Vote</a>
+        <a href="{% url 'login' %}" classs="btn btn-light border" style="width: 50%; padding: 12px; text-decoration: none; color: #212529; background-color: #f8f9fa; border-radius: 5px; font-weight: 500;">Login</a>
     </div>
+
 </div>
 {% endblock %}

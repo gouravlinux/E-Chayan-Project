@@ -1,289 +1,334 @@
 /* General Styling */
 * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        body {
-            display: flex;
-            background-color: #f5f6fa;
-        }
-        .sidebar {
-            background: linear-gradient(to bottom, #FF9933 0%, #ffffff 50%, #138808 100%);
-            width: 230px;
-            min-height: 100vh;
-            padding: 25px 20px;
-            color: #222;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.15);
-            position: fixed;
-        }
-
-        .sidebar h3 {
-            font-weight: 700;
-            color: #003366;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .sidebar a {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-            color: #000;
-            font-weight: 500;
-            margin: 10px 0;
-            transition: all 0.3s ease;
-            padding: 8px 12px;
-            border-radius: 10px;
-        }
-
-        .sidebar a:hover {
-            background: rgba(0, 0, 0, 0.1);
-            transform: translateX(5px);
-        }
-
-        .sidebar .logout {
-            color: red;
-            font-weight: 600;
-        }
-
-        /* Main content area */
-        .main-content {
-            margin-left: 230px;
-            width: calc(100% - 230px);
-            display: flex;
-            flex-direction: column;
-        }
-        .topbar {
-            background-color: #ffffff;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-            border-radius: 0 0 10px 10px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .color-strip {
-            height: 6px;
-            background: linear-gradient(to right, #FF9933, #FFFFFF, #138808);
-            border-radius: 0 0 6px 6px;
-        }
-        .topbar-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 25px;
-        }
-
-        .topbar-content h5 {
-            margin: 0;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .topbar-content span {
-            font-size: 14px;
-            color: #555;
-        }
-        .content-area {
-            padding: 30px;
-        }
-/* General Styling */
-:root {
-    --primary-color: #007bff; /* Blue for buttons and links */
-    --background-color: white; /* Very dark grey */
-    --card-color: white;       /* Dark grey for cards */
-    --text-color: black;       /* Light grey text */
-    --border-color: #333;
-    --success-color: #28a745;
-    --error-color: #dc3545;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
 }
+
+/* === NEW RESPONSIVE LAYOUT === */
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: var(--background-color);
-    color: var(--text-color);
+  background-color: #f5f6fa;
 }
 
-.container {
-    width: 90%;
-    max-width: 1200px;
-    margin: 20px auto;
-    padding: 20px;
+/* 1. Main Content (MOBILE FIRST) */
+.main-content {
+  width: 100%;
+  margin-left: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
-/* Header/Navbar */
-header {
-    background-color: var(--card-color);
-    border-bottom: 1px solid var(--border-color);
-    padding: 10px 0;
+/* 2. Sidebar (Bootstrap Offcanvas styles) */
+.sidebar.offcanvas {
+  background: linear-gradient(to bottom, #ff9933 0%, #ffffff 50%, #138808 100%);
+  width: 230px;
+  color: #222;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.15);
+}
+.sidebar .offcanvas-body {
+  padding: 25px 20px;
+}
+.sidebar .offcanvas-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+.sidebar .logo {
+  display: block; /* D-none d-md-block makes it a block */
+  text-decoration: none;
+}
+.sidebar h3 {
+  font-weight: 700;
+  color: #003366;
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 1.8em;
+}
+.sidebar a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: #000;
+  font-weight: 500;
+  margin: 10px 0;
+  transition: all 0.3s ease;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 1em;
+}
+.sidebar a:hover {
+  background: rgba(0, 0, 0, 0.05);
+  transform: translateX(5px);
+}
+.sidebar a.logout {
+  color: #dc3545;
+  font-weight: 600;
+}
+.sidebar a i {
+  font-style: normal;
+  font-size: 1.1em;
 }
 
-nav {
-    width: 90%;
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+/* 3. Media Query (DESKTOP STYLES) */
+/* 3. Media Query (DESKTOP STYLES) */
+/* This applies only to screens 768px wide or larger */
+@media (min-width: 768px) {
+  /* Make the sidebar permanent and fixed */
+  .sidebar.offcanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    min-height: 100vh;
+    transform: none; /* Keep it visible */
+    visibility: visible;
+  }
+
+  /* Hide the mobile header (This is the fixed rule) */
+  .sidebar.offcanvas .offcanvas-header {
+    display: none;
+  }
+
+  /* Push the main content to the right */
+  .main-content {
+    margin-left: 230px; /* This MUST match your sidebar width */
+    width: calc(100% - 230px);
+  }
+}
+/* === END OF RESPONSIVE LAYOUT === */
+
+/* === MAIN CONTENT === */
+/* === TOP BAR === */
+.topbar {
+  background-color: #ffffff;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-nav .logo {
-    font-size: 1.5em;
-    font-weight: bold;
-    color: var(--primary-color);
-    text-decoration: none;
+.color-strip {
+  height: 6px;
+  background: linear-gradient(to right, #ff9933, #ffffff, #138808);
 }
 
-nav ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
+.topbar-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 25px;
+}
+.topbar-content h5 {
+  margin: 0;
+  font-weight: 600;
+  color: #333;
+}
+.topbar-content span {
+  font-size: 14px;
+  color: #555;
 }
 
-nav ul li {
-    margin-left: 20px;
+/* This styles the hamburger BUTTON */
+.topbar-content .btn {
+    width: auto; /* Resets the 100% width */
+    padding: 6px 12px;
+    
+    /* Make the button transparent */
+    background-color: transparent; 
+    border: none;
+    
+    /* Removes the blue shadow on click */
+    box-shadow: none !important; 
 }
 
-nav ul li a {
-    text-decoration: none;
-    color: var(--text-color);
-    font-weight: 500;
+/* This styles the hamburger ICON */
+.topbar-content .btn i {
+    /* Use the dark blue from your logo */
+    color: #003366; 
+    
+    /* Make the icon a little bigger */
+    font-size: 1.8rem; 
 }
 
-nav ul li a:hover {
-    color: var(--primary-color);
+/* === CONTENT AREA === */
+.content-area {
+  padding: 30px;
+  flex-grow: 1; /* Pushes footer down */
 }
 
-/* Main Content */
-main {
-    min-height: 80vh; /* Ensures footer stays down */
-}
-
-/* Footer */
+/* === FOOTER === */
 footer {
-    text-align: center;
-    padding: 20px;
-    background-color: var(--card-color);
-    border-top: 1px solid var(--border-color);
-    margin-top: 40px;
-    font-size: 0.9em;
+  text-align: center;
+  padding: 20px 0;
+  background-color: #343a40;
+  color: #e0e0e0;
+  font-size: 0.9em;
+  width: 100%;
+}
+footer p {
+  margin: 0;
+}
+
+/* === STYLES FROM YOUR OLD CSS (FOR FORMS, ETC) === */
+:root {
+  --primary-color: #007bff;
+  --success-color: #28a745;
+  --error-color: #dc3545;
+  --border-color: #dee2e6;
 }
 
 /* Form Styling */
 .form-card {
-    background-color: var(--card-color);
-    border-radius: 8px;
-    padding: 30px;
-    max-width: 500px;
-    margin: 40px auto;
-    border: 1px solid var(--border-color);
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 30px;
+  max-width: 500px;
+  margin: 20px auto;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
-
 .form-card h1 {
-    text-align: center;
-    margin-top: 0;
-    color: black;
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 25px;
+  color: #333;
+  font-weight: 600;
 }
-
 .form-group {
-    margin-bottom: 20px;
+  margin-bottom: 20px;
 }
-
 .form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #495057;
 }
-
 .form-group input,
 .form-group select {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid var(--border-color);
-    background-color: white;
-    color: var(--text-color);
-    border-radius: 5px;
-    box-sizing: border-box; /* Important! */
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  background-color: #ffffff;
+  color: #212529;
+  border-radius: 5px;
+  box-sizing: border-box;
 }
-
+.form-group input:focus,
+.form-group select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+  outline: none;
+}
 .btn {
-    display: inline-block;
-    width: 100%;
-    padding: 12px;
-    background-color: var(--primary-color);
-    color: #fff;
-    text-align: center;
-    text-decoration: none;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1em;
-    font-weight: 500;
+  display: inline-block;
+  width: 100%;
+  padding: 12px;
+  background-color: var(--primary-color);
+  color: #fff;
+  text-align: center;
+  text-decoration: none;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
 }
-
 .btn:hover {
-    background-color: #0056b3;
+  background-color: #0056b3;
 }
 
+/* ... (rest of your styles are fine) ... */
 .auth-link {
-    text-align: center;
-    margin-top: 20px;
+  text-align: center;
+  margin-top: 20px;
 }
-
 .auth-link a {
-    color: var(--primary-color);
-    text-decoration: none;
+  color: var(--primary-color);
+  text-decoration: none;
 }
-
-/* Dashboard & Results Styling */
-.election-card, .result-card {
-    background-color: var(--card-color);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
+.election-card,
+.result-card {
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
-
-.election-card h3, .result-card h3 {
-    margin-top: 0;
-    color: var(--primary-color);
+.election-card h3,
+.result-card h3 {
+  margin-top: 0;
+  color: var(--primary-color);
+  font-weight: 600;
 }
-
 .btn-vote {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: var(--success-color);
-    color: #fff;
-    text-decoration: none;
-    border-radius: 5px;
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: var(--success-color);
+  color: #fff;
+  text-decoration: none;
+  border-radius: 5px;
+  font-weight: 500;
 }
-
 .btn-voted {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: var(--border-color);
-    color: var(--text-color);
-    text-decoration: none;
-    border-radius: 5px;
-    cursor: not-allowed;
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #6c757d;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 5px;
+  cursor: not-allowed;
 }
-
 .alert-message {
-    padding: 15px;
-    margin-bottom: 20px;
-    border-radius: 5px;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  font-weight: 500;
 }
 .alert-error {
-    background-color: var(--error-color);
-    color: #fff;
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
 }
 .alert-success {
-    background-color: var(--success-color);
-    color: #fff;
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+.guidelines-box {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-left: 5px solid var(--primary-color);
+  padding: 15px 20px;
+  margin-bottom: 25px;
+  border-radius: 5px;
+}
+.guidelines-box h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #003366;
+  font-weight: 600;
+}
+.guidelines-box ul {
+  padding-left: 20px;
+  margin-bottom: 0;
+  font-size: 0.9em;
+  color: #495057;
+}
+.guidelines-box ul li {
+  margin-bottom: 5px;
+}
+.password-wrapper {
+  position: relative;
+}
+.password-wrapper .toggle-password-icon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #6c757d;
+  z-index: 3;
 }

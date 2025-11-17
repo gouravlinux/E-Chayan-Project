@@ -5,53 +5,137 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}e-Chayan{% endblock %}</title>
-    <link rel="icon" href="{% static 'votingApp/images/favicon.svg' %}"
-    type="image/svg+xml"> {% comment %}
-    <link rel="stylesheet" href="{% static 'votingApp/css/style.css' %}" />
-    {% endcomment %}
+
+    <link
+      rel="icon"
+      href="{% static 'votingApp/images/favicon.svg' %}"
+      type="image/svg+xml"
+    />
+
+    <!-- Bootstrap CSS -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+
+    <!-- Bootstrap Icons (We need this for the hamburger menu) -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+
     <link rel="stylesheet" href="{% static 'votingApp/css/style.css' %}" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
   </head>
+
   <body>
-    <div class="main-wrapper">
-            <div class="sidebar">
-      <a href="{% url 'home' %}" class="logo"><h3><span>e-Chayan</span></h3></a>
-      {% if user.is_authenticated %}
-      <a href="{% url 'dashboard' %}" class="text-primary"><i>🏠</i> Dashboard</a>
-      <a href="{% url 'results' %}"class="text-primary"><i>📊</i> Results</a>
-      <a href="{% url 'logout' %}"class="text-primary"><i>🚪</i> Logout</a>
-      {% else %}
-      <a href="{% url 'home' %}"class="text-primary"><i>🏠</i> Home</a>
-      <a href="{% url 'results' %}"class="text-primary"><i>📊</i> Results</a>
-      <a href="{% url 'login' %}"class="text-primary"><i>🔑</i>Login</a>
-      <a href="{% url 'register' %}"class="text-primary"><i>📝</i>Register</a>
-      {% endif %}
+    <!-- 1. SIDEBAR (Now an Offcanvas) -->
+    <!-- This is hidden on mobile and becomes our fixed sidebar on desktop -->
+    <div
+      class="sidebar offcanvas offcanvas-start"
+      tabindex="-1"
+      id="sidebarMenu"
+      aria-labelledby="sidebarMenuLabel"
+    >
+      <!-- Header (visible on mobile) -->
+      <div class="offcanvas-header">
+        <h3 class="offcanvas-title" id="sidebarMenuLabel">
+          <span>e-Chayan</span>
+        </h3>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="offcanvas"
+          aria-label="Close"
+        ></button>
+      </div>
+
+      <!-- Body (our navigation links) -->
+      <div class="offcanvas-body">
+        <!-- This is the logo that shows on desktop -->
+        <a href="{% url 'home' %}" class="logo d-none d-md-block">
+          <h3><span>e-Chayan</span></h3>
+        </a>
+
+        {% if user.is_authenticated %}
+        <a href="{% url 'dashboard' %}"><i>🏠</i> Dashboard</a>
+        <a href="{% url 'profile' %}"><i>👤</i> Profile</a>
+        <a href="{% url 'results' %}"><i>📊</i> Results</a>
+        <a href="#"><i>⚙️</i> Settings</a>
+        <a
+          href="#"
+          data-bs-toggle="modal"
+          data-bs-target="#logoutModal"
+          class="logout"
+          ><i>🚪</i> Logout</a
+        >
+        {% else %}
+        <a href="{% url 'home' %}"><i>🏠</i> Home</a>
+        <a href="{% url 'results' %}"><i>📊</i> Results</a>
+        <a href="{% url 'login' %}"><i>🔑</i> Login</a>
+        <a href="{% url 'register' %}"><i>📝</i> Register</a>
+        {% endif %}
+      </div>
     </div>
-<div class="main-content color-strip">
-  <div class="content-area">
+
+    <!-- 2. MAIN CONTENT AREA -->
+    <div class="main-content">
+      <!-- TOP BAR -->
+      <div class="topbar">
+        <div class="color-strip"></div>
+        <div class="topbar-content">
+          <!-- This Hamburger Button shows on MOBILE ONLY -->
+          <button
+            class="btn d-md-none"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#sidebarMenu"
+            aria-controls="sidebarMenu"
+          >
+            <i class="bi bi-list" style="font-size: 1.5rem"></i>
+          </button>
+
+          <h5 class="d-none d-md-block">Welcome to e-Chayan Dashboard</h5>
+          <h5 class="d-md-none">e-Chayan</h5>
+
+          {% if user.is_authenticated %}
+          <span>Logged in as <strong>{{ user.username }}</strong></span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- CONTENT (Messages + Page Content) -->
+      <div class="content-area">
         {% if messages %} {% for message in messages %}
         <div
           class="alert-message {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}"
         >
           {{ message }}
-          
         </div>
-        {% endfor %} {% endif %}
+        {% endfor %} {% endif %} {% block content %} {% endblock %}
       </div>
-      {% block content %} {% endblock %}
-  </div>
-</div>
+      <!-- end .content-area -->
+
+      <!-- FOOTER -->
+      <footer>
+        <div class="container-fluid">
+          <p>&copy; 2025 e-Chayan Project. Secure Digital Voting.</p>
+        </div>
+      </footer>
+    </div>
+    <!-- end .main-content -->
+
+    <!-- Logout Modal (Stays the same) -->
+    <div class="modal fade" id="logoutModal" ...>
+      <!-- ... your modal content ... -->
     </div>
 
-    <footer>
-      <div class="container">
-        <p>&copy; 2025 e-Chayan Project. Secure Digital Voting.</p>
-      </div>
-    </footer>
-
+    <!-- Bootstrap JS (CRITICAL for responsiveness) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS (for password eye) -->
+    <script src="{% static 'votingApp/js/main.js' %}"></script>
   </body>
-
 </html>

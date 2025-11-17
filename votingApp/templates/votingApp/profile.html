@@ -1,0 +1,58 @@
+{% extends 'votingApp/base.html' %}
+{% block title %}My Profile - e-Chayan{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <h1>Your Profile</h1>
+    <p>You can update your details here. Your username cannot be changed.</p>
+
+    <form method="POST" action="{% url 'profile' %}">
+        {% csrf_token %}
+        
+        <!-- Username (Read-only) -->
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" value="{{ user.username }}" class="form-control" disabled>
+            <small class="form-text text-muted">Usernames cannot be changed.</small>
+        </div>
+
+        <!-- First Name -->
+        <div class="form-group">
+            <label for="first_name">First Name</label>
+            <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}" class="form-control" required>
+        </div>
+        
+        <!-- Last Name -->
+        <div class="form-group">
+            <label for="last_name">Last Name</label>
+            <input type="text" id="last_name" name="last_name" value="{{ user.last_name }}" class="form-control" required>
+        </div>
+        
+        <!-- Email -->
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" value="{{ user.email }}" class="form-control" required>
+        </div>
+        
+        <!-- Age (with min="18" for browser-side check) -->
+        <div class="form-group">
+            <label for="age">Age</label>
+            <input type="number" id="age" name="age" value="{{ profile.age }}" min="18" class="form-control" required>
+        </div>
+        
+        <!-- State (with current state pre-selected) -->
+        <div class="form-group">
+            <label for="state">State</label>
+            <select id="state" name="state" class="form-control">
+                {% for value, label in states %}
+                    <option value="{{ value }}" {% if profile.state == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <button type="submit" class="btn">Save Changes</button>
+    </form>
+</div>
+{% endblock %}

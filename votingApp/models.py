@@ -29,7 +29,7 @@ class UserProfile(models.Model):
 
     state = models.CharField(max_length=2, choices=StateChoices.choices)
     is_verified = models.BooleanField(default=False)
-
+    is_email_verified = models.BooleanField(default=False)
 
 class Election(models.Model):
     class Electiontype(models.TextChoices):
