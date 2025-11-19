@@ -64,7 +64,6 @@
         <a href="{% url 'dashboard' %}"><i>🏠</i> Dashboard</a>
         <a href="{% url 'profile' %}"><i>👤</i> Profile</a>
         <a href="{% url 'results' %}"><i>📊</i> Results</a>
-        <a href="#"><i>⚙️</i> Settings</a>
         <a
           href="#"
           data-bs-toggle="modal"
@@ -131,6 +130,23 @@
     <!-- Logout Modal (Stays the same) -->
     <div class="modal fade" id="logoutModal" ...>
       <!-- ... your modal content ... -->
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="logoutModalLabel">Confirm Logout</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            Are you sure you want to log out?
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            
+            <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
+            
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Bootstrap JS (CRITICAL for responsiveness) -->
