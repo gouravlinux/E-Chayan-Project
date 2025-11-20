@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
-from .models import UserProfile, Election, Candidate, Vote, VoterRecord
+from .models import UserProfile, Election, Candidate, Vote, VoterRecord, Party
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone  # Import this to check dates
@@ -424,3 +424,92 @@ def vote_page(request, election_slug):
         "election": election
     }  # The template will loop through election.candidates
     return render(request, "votingApp/vote_page.html", context)
+
+
+def candidate_register_page(request):
+    # 1. Fetch data for the dropdowns
+    elections = Election.objects.all()
+    parties = Party.objects.all()
+
+    if request.method == "POST":
+        # --- User Data ---
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        email = request.POST.get("email")
+        fname = request.POST.get("first_name")
+        lname = request.POST.get("last_name")
+
+        # --- Candidate Data ---
+        election_id = request.POST.get("election_id")
+        party_mode = request.POST.get("party_select")  # existing, independent, new
+
+        # Basic Validations
+        if User.objects.filter(username=username).exists():
+            return render(
+                request,
+                "votingApp/candidate_register.html",
+                {
+                    "error": "Username already taken",
+                    "elections": elections,
+                    "parties": parties,
+                },
+            )
+
+        # --- Step 1: Create the User ---
+        # We create a standard user. You might want to give them a specific group later.
+        user = User.objects.create_user(
+            username=username, email=email, password=password
+        )
+        user.first_name = fname
+        user.last_name = lname
+        user.save()
+
+        # Create a dummy UserProfile so they don't crash the dashboard (set verified=False)
+        # Candidates might not need age/state for voting, but the model requires it.
+        # We'll put defaults or ask for it. For now, let's auto-fill.
+        UserProfile.objects.create(
+            user=user, age=25, state="MH", is_verified=True
+        )  # Auto-verify candidates for now
+
+        # --- Step 2: Handle Party Logic ---
+        selected_party = None
+        is_independent = False
+
+        if party_mode == "independent":
+            is_independent = True
+
+        elif party_mode == "existing":
+            party_id = request.POST.get("existing_party_id")
+            selected_party = Party.objects.get(id=party_id)
+
+        elif party_mode == "new":
+            new_party_name = request.POST.get("new_party_name")
+            new_party_symbol = request.FILES.get("new_party_symbol")
+
+            # Check if party exists
+            if Party.objects.filter(name=new_party_name).exists():
+                selected_party = Party.objects.get(name=new_party_name)
+            else:
+                # Create the new party
+                selected_party = Party.objects.create(
+                    name=new_party_name, symbol=new_party_symbol
+                )
+
+        # --- Step 3: Create Candidate Entry ---
+        election_obj = Election.objects.get(id=election_id)
+
+        Candidate.objects.create(
+            user=user,
+            name=f"{fname} {lname}",
+            election=election_obj,
+            party=selected_party,
+            is_independent=is_independent,
+        )
+
+        messages.success(
+            request, "Candidate registration successful! You can now login."
+        )
+        return redirect("login")
+
+    context = {"elections": elections, "parties": parties}
+    return render(request, "votingApp/candidate_register.html", context)

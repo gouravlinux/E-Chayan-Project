@@ -1,0 +1,105 @@
+{% extends 'votingApp/base.html' %}
+{% block title %}Candidate Registration - e-Chayan{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <h1>Candidate Registration</h1>
+    <p>Register to run in an upcoming election.</p>
+
+    {% if error %}
+        <div class="alert-message alert-error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="{% url 'candidate_register' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <h4 style="color: var(--primary-color); margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px;">Personal Details</h4>
+        <div class="row" style="display: flex; gap: 10px;">
+            <div class="form-group" style="flex: 1;">
+                <label>First Name</label>
+                <input type="text" name="first_name" required class="form-control">
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <label>Last Name</label>
+                <input type="text" name="last_name" required class="form-control">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Voter ID / Username</label>
+            <input type="text" name="username" required class="form-control" placeholder="Unique Candidate ID">
+        </div>
+        
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" required class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" name="password" required class="form-control">
+        </div>
+
+        <h4 style="color: var(--primary-color); margin: 25px 0 15px 0; border-bottom: 1px solid #eee; padding-bottom: 5px;">Election Details</h4>
+        
+        <div class="form-group">
+            <label>Choose Election</label>
+            <select name="election_id" required class="form-control">
+                <option value="">-- Select Election --</option>
+                {% for election in elections %}
+                    <option value="{{ election.id }}">{{ election.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Party Affiliation</label>
+            <select id="party_select" name="party_select" class="form-control" onchange="togglePartyFields()">
+                <option value="existing">Choose Existing Party</option>
+                <option value="independent">Independent (No Party)</option>
+                <option value="new">Create New Party</option>
+            </select>
+        </div>
+
+        <div id="existing_party_div" class="form-group">
+            <label>Select Party</label>
+            <select name="existing_party_id" class="form-control">
+                {% for party in parties %}
+                    <option value="{{ party.id }}">{{ party.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div id="new_party_div" class="form-group" style="display: none; background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px dashed #ccc;">
+            <label>New Party Name</label>
+            <input type="text" name="new_party_name" class="form-control" placeholder="Enter new party name">
+            
+            <br>
+            <label>Party Symbol (Image)</label>
+            <input type="file" name="new_party_symbol" class="form-control" accept="image/*">
+            <small style="color: #666;">Upload a clear symbol for the ballot.</small>
+        </div>
+
+        <button type="submit" class="btn" style="margin-top: 20px;">Register as Candidate</button>
+    </form>
+</div>
+
+<script>
+    function togglePartyFields() {
+        const status = document.getElementById('party_select').value;
+        const existingDiv = document.getElementById('existing_party_div');
+        const newDiv = document.getElementById('new_party_div');
+
+        if (status === 'existing') {
+            existingDiv.style.display = 'block';
+            newDiv.style.display = 'none';
+        } else if (status === 'new') {
+            existingDiv.style.display = 'none';
+            newDiv.style.display = 'block';
+        } else { // Independent
+            existingDiv.style.display = 'none';
+            newDiv.style.display = 'none';
+        }
+    }
+</script>
+{% endblock %}

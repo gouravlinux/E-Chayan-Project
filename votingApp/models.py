@@ -86,18 +86,23 @@ class Party(models.Model):
 
 
 class Candidate(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     name = models.CharField(max_length=200)
     election = models.ForeignKey(
         Election, on_delete=models.CASCADE, related_name="candidates"
     )
     party = models.ForeignKey(Party, on_delete=models.SET_NULL, null=True, blank=True)
 
-    def __str__(self):
-        if (self.party):
-            return f"{self.name} ({self.party.name})"
-        else:
-            return f"{self.name} (Independent)"
+    is_independent = models.BooleanField(default=False)
 
+    
+    def __str__(self):
+        if self.is_independent:
+             return f"{self.name} (Independent)"
+        elif self.party:
+             return f"{self.name} ({self.party.name})"
+        else:
+             return self.name
 
 class Vote(models.Model):
     candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE)

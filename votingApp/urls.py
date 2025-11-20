@@ -39,4 +39,6 @@ urlpatterns = [
              template_name='votingApp/password_reset_complete.html'
          ), 
          name='password_reset_complete'),
+    
+    path('register/candidate/', views.candidate_register_page, name='candidate_register'),
 ]
