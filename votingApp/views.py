@@ -635,6 +635,6 @@ def candidate_dashboard(request):
     parties = Party.objects.all()
     return render(
         request,
-        "candidate_dashboard.html",
+        "votingApp/candidate_dashboard.html",
         {"candidate": candidate, "parties": parties},
     )
