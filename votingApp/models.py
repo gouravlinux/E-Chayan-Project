@@ -77,6 +77,7 @@ class Election(models.Model):
 
 class Party(models.Model):
     name = models.CharField(max_length=100, unique=True)
+    abbreviation = models.CharField(max_length=10, unique=True,blank=True,null=True)
     symbol = models.ImageField(
         upload_to="party_symbols/", help_text="Party logo or symbol"
     )
