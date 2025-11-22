@@ -41,5 +41,6 @@ urlpatterns = [
          name='password_reset_complete'),
     
     path('register/candidate/', views.candidate_register_page, name='candidate_register'),
-    path('login/candidate/', views.candidate_login, name='candidate_login')
+    path('login/candidate/', views.candidate_login, name='candidate_login'),
+    path('dashboard/candidate/',views.candidate_dashboard, name='candidate_dashboard'),
 ]

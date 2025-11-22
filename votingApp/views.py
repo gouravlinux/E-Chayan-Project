@@ -223,38 +223,41 @@ def logout_page(request):
 # --- 5. Dashboard Page ---
 # (HEAVILY UPGRADED to show eligible elections)
 @login_required
+@login_required
 def dashboard_page(request):
+    # 1. Redirect Candidates to their own dashboard
     if hasattr(request.user, 'candidate'):
         return redirect('candidate_dashboard')
 
-    now = timezone.now()
+    # --- CRITICAL FIX: Handle Missing Profile ---
     try:
         profile = request.user.userprofile
     except UserProfile.DoesNotExist:
-        # If profile is missing, log them out and show an error
-        logout(request)
-        messages.error(request, "Error: Your account profile is missing. Please register again.")
-        return redirect('register')
+        # If the user exists but has no profile data (common for superusers or old accounts)
+        # We redirect them to the profile creation/edit page or logout
+        messages.error(request, "Your profile is incomplete. Please update your details.")
+        return redirect('profile') 
+        # ^ OR use logout(request) and redirect('register') if you prefer
+    # --------------------------------------------
 
-
-    # 1. Get all active elections
+    now = timezone.now()
+    
+    # 2. Get all active elections
     active_elections = Election.objects.filter(start_time__lte=now, end_time__gte=now)
-
-    # 2. Filter for eligibility (Verified + (National OR correct State))
+    
+    # 3. Filter for eligibility (Verified + (National OR correct State))
     eligible_elections_query = active_elections.filter(
-        Q(election_type=Election.Electiontype.NATIONAL)
-        | Q(election_type=Election.Electiontype.STATE, state=profile.state)
+        Q(election_type=Election.Electiontype.NATIONAL) | 
+        Q(election_type=Election.Electiontype.STATE, state=profile.state)
     )
 
-    # 3. Get list of elections this user has ALREADY voted in
-    voted_election_ids = VoterRecord.objects.filter(user=request.user).values_list(
-        "election_id", flat=True
-    )
+    # 4. Get list of elections this user has ALREADY voted in
+    voted_election_ids = VoterRecord.objects.filter(user=request.user).values_list('election_id', flat=True)
 
     eligible_elections = []
-
-    # 4. Process the list to add the 'user_has_voted' status
-    if profile.is_verified:  # Only show elections if user is verified
+    
+    # 5. Process the list
+    if profile.is_verified:
         for election in eligible_elections_query:
             if election.id in voted_election_ids:
                 election.user_has_voted = True
@@ -263,13 +266,11 @@ def dashboard_page(request):
             eligible_elections.append(election)
 
     context = {
-        "user_profile": profile,  # This is for the "Your Profile" card
-        "eligible_elections": eligible_elections,  # For the "Available Elections" list
+        'user_profile': profile,
+        'eligible_elections': eligible_elections
     }
-
-    # --- FIXED Template Path ---
-    return render(request, "votingApp/voting_dashboard.html", context)
-
+    
+    return render(request, 'votingApp/voting_dashboard.html', context)
 
 # At the bottom of votingApp/views.py
 
