@@ -18,9 +18,18 @@
     <br>
     
     <h2 style="font-weight: 600;">Live Voter Turnout</h2>
-    
-    <h3 style="font-size: 3.5em; color: var(--primary-color); font-weight: 700; margin: 10px 0;">
-        {{ turnout_percentage | default:"25.0" }}%
+<h1 style="font-size: 4em; color: var(--primary-color);">{{ turnout_percentage }}%</h1>
+
+<div class="progress" style="height: 25px;">
+  <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" 
+       role="progressbar" 
+       style="width: {{ turnout_percentage }}%" 
+       aria-valuenow="{{ turnout_percentage }}" 
+       aria-valuemin="0" 
+       aria-valuemax="100">
+  </div>
+</div>
+<p class="text-muted mt-2">Real-time participation statistics</p>
     </h3>
     
     <br>
