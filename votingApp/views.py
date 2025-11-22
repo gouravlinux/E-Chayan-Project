@@ -34,7 +34,7 @@ def home_page(request):
     except Exception:
         turnout_percentage = 0
 
-    context = {"turnout_percentage": turnout_percentage}
+    context = {"turnout_percentage": int(turnout_percentage)}
     return render(request, "votingApp/home.html", context)
 
 
@@ -629,7 +629,7 @@ def candidate_dashboard(request):
                 candidate.save()
                 messages.success(request, f"Created and joined party: {party.name}")
 
-        return redirect("candidate_dashboard")
+        return redirect(request,"votingApp/candidate_dashboard.html")
 
     # Pass all parties to template for the dropdown
     parties = Party.objects.all()
