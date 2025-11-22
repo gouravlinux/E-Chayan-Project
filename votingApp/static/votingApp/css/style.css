@@ -332,3 +332,35 @@ footer p {
   color: #6c757d;
   z-index: 3;
 }
+
+/* ... existing code ... */
+
+/* === CANDIDATE DASHBOARD STYLES === */
+.candidate-card {
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 8px;
+    margin-top: 20px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.option-group {
+    margin-bottom: 15px;
+    padding: 15px;
+    border-left: 5px solid var(--primary-color);
+    background: #f8f9fa; /* Light grey */
+    border-radius: 0 5px 5px 0;
+}
+
+.status-text {
+    font-weight: bold;
+    color: var(--primary-color);
+    font-size: 1.1em;
+}
+
+/* Fix for radio inputs alignment */
+.option-group input[type="radio"] {
+    width: auto;
+    margin-right: 10px;
+}

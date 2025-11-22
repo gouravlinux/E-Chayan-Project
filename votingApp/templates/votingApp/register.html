@@ -1,134 +1,86 @@
-{% extends 'votingApp/base.html' %} {% block title %}Register - e-Chayan{% endblock %} {% block content %}
+{% extends 'votingApp/base.html' %}
+{% block title %}Voter Registration - e-Chayan{% endblock %}
+
+{% block content %}
 <div class="form-card">
-  <h1>Create Voter Account</h1>
+    <h1>Create Voter Account</h1>
+    
+    {% if error %}
+        <div class="alert-message alert-error">{{ error }}</div>
+    {% endif %}
 
-  {% if error %}
-  <div class="alert-message alert-error">{{ error }}</div>
-  {% endif %}
-
-  <div class="guidelines-box">
-    <h4>Registration Guidelines</h4>
-    <ul>
-      <li>
-        You must be a citizen of India and <strong>18+ years old</strong>.
-      </li>
-      <li>
-        <strong>Voter ID:</strong> Use your unique Electoral Photo Identity Card
-        (EPIC) number.
-      </li>
-      <li>
-        <strong>Password Policy:</strong> Must be at least 8 characters, contain
-        mixed case letters, and preferably a number.
-      </li>
-      <li>Providing false information is a punishable offense.</li>
-    </ul>
-  </div>
-
-  <form method="POST" action="{% url 'register' %}">
-    {% csrf_token %}
-
-    <div class="row" style="display: flex; gap: 10px">
-      <div class="form-group" style="flex: 1">
-        <label for="first_name">First Name</label>
-        <input
-          type="text"
-          id="first_name"
-          name="first_name"
-          required
-          class="form-control"
-        />
-      </div>
-      <div class="form-group" style="flex: 1">
-        <label for="last_name">Last Name</label>
-        <input
-          type="text"
-          id="last_name"
-          name="last_name"
-          required
-          class="form-control"
-        />
-      </div>
+    <div class="guidelines-box">
+        <h4>Registration Guidelines</h4>
+        <ul>
+            <li>You must be a citizen of India and <strong>18+ years old</strong>.</li>
+            <li><strong>Voter ID:</strong> Use your unique Electoral Photo Identity Card (EPIC) number.</li>
+            <li><strong>Password Policy:</strong> Must be at least 8 characters, contain mixed case letters, and preferably a number.</li>
+            <li>Providing false information is a punishable offense.</li>
+        </ul>
     </div>
 
-    <div class="form-group">
-      <label for="email">Email Address</label>
-      <input
-        type="email"
-        id="email"
-        name="email"
-        required
-        class="form-control"
-      />
-    </div>
+    <form method="POST" action="{% url 'register' %}">
+        {% csrf_token %}
+        
+        <div class="row" style="display: flex; gap: 10px;">
+            <div class="form-group" style="flex: 1;">
+                <label for="first_name">First Name</label>
+                <input type="text" id="first_name" name="first_name" required class="form-control">
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <label for="last_name">Last Name</label>
+                <input type="text" id="last_name" name="last_name" required class="form-control">
+            </div>
+        </div>
 
-    <div class="form-group">
-      <label for="voter_id">Voter ID Number (EPIC)</label>
-      <input
-        type="text"
-        id="voter_id"
-        name="voter_id"
-        required
-        class="form-control"
-        placeholder="e.g., ABC1234567"
-      />
-    </div>
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" required class="form-control">
+        </div>
 
-    <div class="form-group">
-      <label for="reg-password">Password</label>
-      <div class="password-wrapper">
-        <input
-          type="password"
-          id="reg-password"
-          name="password"
-          class="form-control"
-          required
-        />
-        <i class="bi bi-eye-slash toggle-password-icon"></i>
-      </div>
-      <small style="color: #6c757d; font-size: 0.8em"
-        >Min 8 chars, generally hard to guess.</small
-      >
-    </div>
+        <div class="form-group">
+            <label for="voter_id">Voter ID Number (EPIC)</label>
+            <input type="text" id="voter_id" name="voter_id" required class="form-control" placeholder="e.g., ABC1234567">
+        </div>
 
-    <div class="form-group">
-      <label for="confirm-password">Confirm Password</label>
-      <div class="password-wrapper">
-        <input
-          type="password"
-          id="confirm-password"
-          name="confirm_password"
-          class="form-control"
-          required
-        />
-        <i class="bi bi-eye-slash toggle-password-icon"></i>
-      </div>
-    </div>
+        <div class="form-group">
+            <label for="reg-password">Password</label>
+            <div class="password-wrapper">
+                <input type="password" id="reg-password" name="password" class="form-control" required>
+                <i class="bi bi-eye-slash toggle-password-icon"></i>
+            </div>
+            <small style="color: #6c757d; font-size: 0.8em;">Min 8 chars, generally hard to guess.</small>
+        </div>
 
-    <div class="form-group">
-      <label for="age">Age</label>
-      <input
-        type="number"
-        id="age"
-        name="age"
-        min="18"
-        required
-        class="form-control"
-      />
-    </div>
+        <div class="form-group">
+            <label for="confirm-password">Confirm Password</label>
+            <div class="password-wrapper">
+                <input type="password" id="confirm-password" name="confirm_password" class="form-control" required>
+                <i class="bi bi-eye-slash toggle-password-icon"></i>
+            </div>
+        </div>
 
-    <div class="form-group">
-      <label for="state">State</label>
-      <select id="state" name="state" class="form-select">
-        {% for value, label in states %}
-        <option value="{{ value }}">{{ label }}</option>
-        {% endfor %}
-      </select>
-    </div>
+        <div class="form-group">
+            <label for="age">Age</label>
+            <input type="number" id="age" name="age" min="18" required class="form-control">
+        </div>
 
-    <button type="submit" class="btn">Register</button>
-  </form>
-  <div class="auth-link">
-    <p>Already registered? <a href="{% url 'login' %}">Login here</a></p>
-  </div>
+        <div class="form-group">
+            <label for="state">State</label>
+            <select id="state" name="state" class="form-select">
+                {% for value, label in states %}
+                    <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn">Register as Voter</button>
+    </form>
+    
+    <div class="auth-link">
+        <p>Already registered? <a href="{% url 'login' %}">Login here</a></p>
+        <hr style="margin: 10px 0; border-color: #eee;">
+        <p>Want to participate in election? <a href="{% url 'candidate_register' %}">Register as Candidate</a></p>
+    </div>
 </div>
 {% endblock %}

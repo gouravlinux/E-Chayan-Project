@@ -4,16 +4,21 @@
 {% block content %}
 <div class="form-card">
     <h1>Candidate Registration</h1>
-    <p>Register to run in an upcoming election.</p>
-
+    
     {% if error %}
         <div class="alert-message alert-error">{{ error }}</div>
     {% endif %}
 
-    <form method="POST" action="{% url 'candidate_register' %}" enctype="multipart/form-data">
+    <form method="POST" action="{% url 'candidate_register' %}" enctype="multipart/form-data" id="candidateForm">
         {% csrf_token %}
         
-        <h4 style="color: var(--primary-color); margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px;">Personal Details</h4>
+        <h4 style="color: var(--primary-color); margin-bottom: 15px;">Personal Details</h4>
+        
+        <div class="form-group">
+            <label>Candidate Photo (For Ballot)</label>
+            <input type="file" name="candidate_photo" class="form-control" accept="image/*" required>
+        </div>
+
         <div class="row" style="display: flex; gap: 10px;">
             <div class="form-group" style="flex: 1;">
                 <label>First Name</label>
@@ -27,7 +32,7 @@
 
         <div class="form-group">
             <label>Voter ID / Username</label>
-            <input type="text" name="username" required class="form-control" placeholder="Unique Candidate ID">
+            <input type="text" name="username" required class="form-control">
         </div>
         
         <div class="form-group">
@@ -39,15 +44,29 @@
             <label>Password</label>
             <input type="password" name="password" required class="form-control">
         </div>
+        <div class="form-group">
+            <label>Confirm Password</label>
+            <input type="password" name="confirm_password" required class="form-control">
+        </div>
 
-        <h4 style="color: var(--primary-color); margin: 25px 0 15px 0; border-bottom: 1px solid #eee; padding-bottom: 5px;">Election Details</h4>
+        <h4 style="color: var(--primary-color); margin: 25px 0 15px 0;">Election Details</h4>
         
         <div class="form-group">
             <label>Choose Election</label>
-            <select name="election_id" required class="form-control">
+            <select name="election_id" required class="form-select">
                 <option value="">-- Select Election --</option>
                 {% for election in elections %}
                     <option value="{{ election.id }}">{{ election.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>State</label>
+            <select id="state_select" name="state" class="form-select" required>
+                <option value="">-- Select State --</option>
+                {% for code, name in states %}
+                    <option value="{{ code }}">{{ name }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -70,14 +89,12 @@
             </select>
         </div>
 
-        <div id="new_party_div" class="form-group" style="display: none; background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px dashed #ccc;">
+        <div id="new_party_div" class="form-group" style="display: none;">
             <label>New Party Name</label>
-            <input type="text" name="new_party_name" class="form-control" placeholder="Enter new party name">
-            
+            <input type="text" name="new_party_name" class="form-control">
             <br>
-            <label>Party Symbol (Image)</label>
+            <label>Party Symbol</label>
             <input type="file" name="new_party_symbol" class="form-control" accept="image/*">
-            <small style="color: #666;">Upload a clear symbol for the ballot.</small>
         </div>
 
         <button type="submit" class="btn" style="margin-top: 20px;">Register as Candidate</button>
@@ -85,6 +102,7 @@
 </div>
 
 <script>
+    // Party Toggle Logic Only
     function togglePartyFields() {
         const status = document.getElementById('party_select').value;
         const existingDiv = document.getElementById('existing_party_div');
@@ -96,7 +114,7 @@
         } else if (status === 'new') {
             existingDiv.style.display = 'none';
             newDiv.style.display = 'block';
-        } else { // Independent
+        } else { 
             existingDiv.style.display = 'none';
             newDiv.style.display = 'none';
         }

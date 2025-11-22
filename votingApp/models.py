@@ -1,8 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
-from django.core.validators import MinValueValidator, MaxValueValidator 
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
+
 
 
 class UserProfile(models.Model):
@@ -10,6 +11,7 @@ class UserProfile(models.Model):
     age = models.IntegerField(
         default=18, validators=[MinValueValidator(18), MaxValueValidator(100)]
     )
+    profile_photo = models.ImageField(upload_to='voter_photos/', blank=True, null=True)
 
     class StateChoices(models.TextChoices):
         ANDHRA_PRADESH = "AP", "Andhra Pradesh"
@@ -58,7 +60,7 @@ class Election(models.Model):
         # Automatically clear the state field if the election is National
         if self.election_type == self.Electiontype.NATIONAL:
             self.state = None
-        
+
         # Raise an error if the type is State but no state is selected
         if self.election_type == self.Electiontype.STATE and not self.state:
             raise ValidationError("A State election must have a state selected.")
@@ -68,8 +70,6 @@ class Election(models.Model):
         if not self.slug:
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
-    
-    
 
     def __str__(self):
         return self.name
@@ -91,18 +91,29 @@ class Candidate(models.Model):
     election = models.ForeignKey(
         Election, on_delete=models.CASCADE, related_name="candidates"
     )
-    party = models.ForeignKey(Party, on_delete=models.SET_NULL, null=True, blank=True)
+    candidate_photo = models.ImageField(upload_to='candidate_photos/', blank=True, null=True)
+    party = models.ForeignKey(
+        Party,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="candidates",
+    )
+
 
     is_independent = models.BooleanField(default=False)
 
-    
+    position = models.CharField(max_length=100, default='Candidate') # eg. 'MP' or 'MLA'
+    bio = models.TextField(blank=True)    
+
     def __str__(self):
         if self.is_independent:
-             return f"{self.name} (Independent)"
+            return f"{self.name} (Independent)"
         elif self.party:
-             return f"{self.name} ({self.party.name})"
+            return f"{self.name} ({self.party.name})"
         else:
-             return self.name
+            return self.name
+
 
 class Vote(models.Model):
     candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE)
