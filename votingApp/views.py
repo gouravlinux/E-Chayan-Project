@@ -11,6 +11,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.conf import settings
+from django.http import JsonResponse
 import time
 
 
@@ -425,91 +426,196 @@ def vote_page(request, election_slug):
     }  # The template will loop through election.candidates
     return render(request, "votingApp/vote_page.html", context)
 
+# In votingApp/views.py
 
 def candidate_register_page(request):
-    # 1. Fetch data for the dropdowns
+    # 1. Fetch data for dropdowns
     elections = Election.objects.all()
     parties = Party.objects.all()
+    state_choices = UserProfile.StateChoices.choices
 
-    if request.method == "POST":
+    if request.method == 'POST':
         # --- User Data ---
-        username = request.POST.get("username")
-        password = request.POST.get("password")
-        email = request.POST.get("email")
-        fname = request.POST.get("first_name")
-        lname = request.POST.get("last_name")
-
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        pass1 = request.POST.get('password')
+        pass2 = request.POST.get('confirm_password')
+        fname = request.POST.get('first_name')
+        lname = request.POST.get('last_name')
+        
         # --- Candidate Data ---
-        election_id = request.POST.get("election_id")
-        party_mode = request.POST.get("party_select")  # existing, independent, new
+        election_id = request.POST.get('election_id')
+        selected_state = request.POST.get('state') # Get state from form
+        party_mode = request.POST.get('party_select') # existing, independent, new
+        candidate_photo = request.FILES.get('candidate_photo') # Get the image
 
-        # Basic Validations
+        # --- Context for Error Rendering ---
+        # We pass this so the form still has data if we return an error
+        error_context = {
+            'elections': elections,
+            'parties': parties,
+            'states': state_choices
+        }
+
+        # --- VALIDATION 1: Passwords Match ---
+        if pass1 != pass2:
+            error_context['error'] = "Passwords do not match."
+            return render(request, 'votingApp/candidate_register.html', error_context)
+
+        # --- VALIDATION 2: Duplicate User/Email ---
         if User.objects.filter(username=username).exists():
-            return render(
-                request,
-                "votingApp/candidate_register.html",
-                {
-                    "error": "Username already taken",
-                    "elections": elections,
-                    "parties": parties,
-                },
-            )
+            error_context['error'] = "Username already taken."
+            return render(request, 'votingApp/candidate_register.html', error_context)
+        
+        if User.objects.filter(email=email).exists():
+            error_context['error'] = "Email already registered."
+            return render(request, 'votingApp/candidate_register.html', error_context)
 
-        # --- Step 1: Create the User ---
-        # We create a standard user. You might want to give them a specific group later.
-        user = User.objects.create_user(
-            username=username, email=email, password=password
-        )
+        # --- Step 1: Create User (INACTIVE until OTP) ---
+        user = User.objects.create_user(username=username, email=email, password=pass1)
         user.first_name = fname
         user.last_name = lname
+        user.is_active = False # Important for OTP flow
         user.save()
+        
+        # --- Step 2: Create UserProfile ---
+        # Use the state selected in the form
+        UserProfile.objects.create(user=user, age=25, state=selected_state, is_verified=False)
 
-        # Create a dummy UserProfile so they don't crash the dashboard (set verified=False)
-        # Candidates might not need age/state for voting, but the model requires it.
-        # We'll put defaults or ask for it. For now, let's auto-fill.
-        UserProfile.objects.create(
-            user=user, age=25, state="MH", is_verified=True
-        )  # Auto-verify candidates for now
-
-        # --- Step 2: Handle Party Logic ---
+        # --- Step 3: Handle Party Logic ---
         selected_party = None
         is_independent = False
 
-        if party_mode == "independent":
+        if party_mode == 'independent':
             is_independent = True
-
-        elif party_mode == "existing":
-            party_id = request.POST.get("existing_party_id")
+        
+        elif party_mode == 'existing':
+            party_id = request.POST.get('existing_party_id')
             selected_party = Party.objects.get(id=party_id)
-
-        elif party_mode == "new":
-            new_party_name = request.POST.get("new_party_name")
-            new_party_symbol = request.FILES.get("new_party_symbol")
-
-            # Check if party exists
+            
+        elif party_mode == 'new':
+            new_party_name = request.POST.get('new_party_name')
+            new_party_symbol = request.FILES.get('new_party_symbol')
+            
+            # Check if party already exists to avoid crashing
             if Party.objects.filter(name=new_party_name).exists():
-                selected_party = Party.objects.get(name=new_party_name)
+                 selected_party = Party.objects.get(name=new_party_name)
             else:
                 # Create the new party
                 selected_party = Party.objects.create(
-                    name=new_party_name, symbol=new_party_symbol
+                    name=new_party_name,
+                    symbol=new_party_symbol
                 )
 
-        # --- Step 3: Create Candidate Entry ---
-        election_obj = Election.objects.get(id=election_id)
+        # --- Step 4: Create Candidate Entry ---
+        try:
+            election_obj = Election.objects.get(id=election_id)
+            
+            Candidate.objects.create(
+                user=user,
+                name=f"{fname} {lname}",
+                election=election_obj,
+                party=selected_party,
+                is_independent=is_independent,
+                candidate_photo=candidate_photo 
+            )
+        except Exception as e:
+            # If candidate creation fails (e.g., missing constituency), delete user and show error
+            user.delete()
+            error_context['error'] = f"Error creating candidate profile: {str(e)}"
+            return render(request, 'votingApp/candidate_register.html', error_context)
 
-        Candidate.objects.create(
-            user=user,
-            name=f"{fname} {lname}",
-            election=election_obj,
-            party=selected_party,
-            is_independent=is_independent,
-        )
+        # --- Step 5: Send OTP ---
+        otp = random.randint(100000, 999999)
+        request.session['verification_otp'] = otp
+        request.session['verification_user_id'] = user.id
+        request.session['otp_creation_time'] = time.time()
+        
+        try:
+            subject = 'Candidate Verification - e-Chayan'
+            message = f'Your Candidate OTP is: {otp}'
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
+        except Exception as e:
+            user.delete() # Rollback
+            error_context['error'] = f'Email failed to send: {e}'
+            return render(request, 'votingApp/candidate_register.html', error_context)
 
-        messages.success(
-            request, "Candidate registration successful! You can now login."
-        )
-        return redirect("login")
+        messages.success(request, "Registration successful! Please verify your email.")
+        return redirect('verify_otp')
 
-    context = {"elections": elections, "parties": parties}
-    return render(request, "votingApp/candidate_register.html", context)
+    # --- GET Request ---
+    context = {
+        'elections': elections,
+        'parties': parties,
+        'states': state_choices # Pass states for the dropdown
+    }
+    return render(request, 'votingApp/candidate_register.html', context)
+
+def candidate_login(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        passw = request.POST.get("password")
+
+        user = authenticate(request, username=username, password=passw)
+
+        if user is not None:
+            # 1. Check if they are a candidate
+            if hasattr(user, "candidate"):
+                
+                # 2. Check if Admin has verified them
+                if not user.userprofile.is_verified:
+                    messages.error(request, "Your candidacy is pending approval. Please wait for Admin verification.")
+                    return render(request, "votingApp/candidate_login.html")
+                
+                # 3. Check if Email is verified (OTP)
+                if not user.userprofile.is_email_verified:
+                    messages.error(request, "Please verify your email first.")
+                    return render(request, "votingApp/candidate_login.html")
+
+                # If all checks pass, log them in
+                login(request, user)
+                return redirect("candidate_dashboard")
+            else:
+                messages.error(request, "User is not a registered candidate.")
+        else:
+            messages.error(request, "Invalid username or password.")
+
+    return render(request, "votingApp/candidate_login.html")
+
+@login_required
+def candidate_dashboard(request):
+    candidate = request.user.candidate
+
+    if request.method == "POST":
+        choice = request.POST.get("party_choice")  # independent, existing, new
+
+        if choice == "independent":
+            candidate.party = None
+            candidate.save()
+            messages.success(request, "You are now an Independent candidate.")
+
+        elif choice == "existing":
+            party_id = request.POST.get("existing_party_id")
+            if party_id:
+                candidate.party = Party.objects.get(id=party_id)
+                candidate.save()
+                messages.success(request, f"Joined {candidate.party.name}.")
+
+        elif choice == "new":
+            new_party_name = request.POST.get("new_party_name")
+            if new_party_name:
+                # Create new party if it doesn't exist
+                party, created = Party.objects.get_or_create(name=new_party_name)
+                candidate.party = party
+                candidate.save()
+                messages.success(request, f"Created and joined party: {party.name}")
+
+        return redirect("candidate_dashboard")
+
+    # Pass all parties to template for the dropdown
+    parties = Party.objects.all()
+    return render(
+        request,
+        "candidate_dashboard.html",
+        {"candidate": candidate, "parties": parties},
+    )
