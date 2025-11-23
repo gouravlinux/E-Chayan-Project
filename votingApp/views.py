@@ -452,7 +452,6 @@ def candidate_register_page(request):
             selected_state = request.POST.get("state")
 
         party_mode = request.POST.get("party_select")
-        candidate_photo = request.FILES.get("candidate_photo")
 
         # Party Data
         new_party_name = request.POST.get("new_party_name")
@@ -520,7 +519,6 @@ def candidate_register_page(request):
                 election=election_obj,
                 party=selected_party,
                 is_independent=(party_mode == "independent"),
-                candidate_photo=candidate_photo,
             )
         except Exception as e:
             user.delete()

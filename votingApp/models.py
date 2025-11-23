@@ -11,7 +11,6 @@ class UserProfile(models.Model):
     age = models.IntegerField(
         default=18, validators=[MinValueValidator(18), MaxValueValidator(100)]
     )
-    profile_photo = models.ImageField(upload_to='voter_photos/', blank=True, null=True)
 
     class StateChoices(models.TextChoices):
         ANDHRA_PRADESH = "AP", "Andhra Pradesh"
