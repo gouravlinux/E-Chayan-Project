@@ -26,8 +26,8 @@ SECRET_KEY = "django-insecure-g9&4%m61r5l0me!sfckx+@1ax5!m9lb$)+6^@qx_=@(yaixus=
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # This automatically sets DEBUG to False when on Render
-# DEBUG = os.environ.get('RENDER') != 'true'
-DEBUG = 'true'
+DEBUG = os.environ.get('RENDER') != 'true'
+# DEBUG = 'false'
 
 # settings.py
 
