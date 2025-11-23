@@ -91,7 +91,6 @@ class Candidate(models.Model):
     election = models.ForeignKey(
         Election, on_delete=models.CASCADE, related_name="candidates"
     )
-    candidate_photo = models.ImageField(upload_to='candidate_photos/', blank=True, null=True)
     party = models.ForeignKey(
         Party,
         on_delete=models.SET_NULL,
